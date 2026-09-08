@@ -1,0 +1,213 @@
+name: Apply effective analyze model fix
+
+on:
+  push:
+    branches: [fix/minimax-m3-anthropic-sdk]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/minimax-m3-anthropic-sdk
+
+      - name: Apply model precedence fix
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path("unread/analyzer/pipeline.py")
+          text = p.read_text(encoding="utf-8")
+
+          anchor = '''def _resolve_language(settings: Any) -> str:
+              locale = getattr(settings, "locale", None)
+              if locale is None:
+                  return "en"
+              return (locale.language or "en").lower()
+
+
+          def estimate_cost(
+          '''
+          replacement = '''def _resolve_language(settings: Any) -> str:
+              locale = getattr(settings, "locale", None)
+              if locale is None:
+                  return "en"
+              return (locale.language or "en").lower()
+
+
+          def _resolve_analysis_models(
+              settings: Any,
+              preset: Preset,
+              *,
+              model_override: str | None = None,
+              filter_model_override: str | None = None,
+          ) -> tuple[str, str]:
+              """Resolve the actual final/filter model names for an analyze run.
+
+              Precedence is: CLI override -> explicit per-slot model -> preset pin
+              when the slot uses OpenAI -> provider default. Preset frontmatter
+              historically pins OpenAI model IDs; forwarding those IDs to a
+              non-OpenAI provider makes the provider/model pair inconsistent.
+              """
+              from unread.ai.providers import resolve_chat, resolve_filter
+
+              chat_provider, chat_slot_model = resolve_chat(settings)
+              filter_provider, filter_slot_model = resolve_filter(settings)
+              explicit_chat = (getattr(settings.ai, "chat_model", "") or "").strip()
+              explicit_filter = (getattr(settings.ai, "filter_model", "") or "").strip()
+              preset_final = (getattr(preset, "final_model", "") or "").strip()
+              preset_filter = (getattr(preset, "filter_model", "") or "").strip()
+
+              final_model = (
+                  (model_override or "").strip()
+                  or explicit_chat
+                  or (preset_final if chat_provider == "openai" else "")
+                  or chat_slot_model
+              )
+              filter_model = (
+                  (filter_model_override or "").strip()
+                  or explicit_filter
+                  or (preset_filter if filter_provider == "openai" else "")
+                  or filter_slot_model
+              )
+              return final_model, filter_model
+
+
+          def estimate_cost(
+          '''
+          if anchor not in text:
+              raise RuntimeError("pipeline helper insertion anchor not found")
+          text = text.replace(anchor, replacement, 1)
+
+          old = '''    filter_model = preset.filter_model
+              final_model = preset.final_model
+          '''
+          new = '''    final_model, filter_model = _resolve_analysis_models(settings, preset)
+          '''
+          if old not in text:
+              raise RuntimeError("estimate_cost model anchor not found")
+          text = text.replace(old, new, 1)
+
+          old = '''    final_model = opts.model_override or preset.final_model or settings.openai.chat_model_default
+              filter_model = opts.filter_model_override or preset.filter_model or settings.openai.filter_model_default
+          '''
+          new = '''    final_model, filter_model = _resolve_analysis_models(
+                  settings,
+                  preset,
+                  model_override=opts.model_override,
+                  filter_model_override=opts.filter_model_override,
+              )
+          '''
+          if old not in text:
+              raise RuntimeError("run_analysis model anchor not found")
+          text = text.replace(old, new, 1)
+          p.write_text(text, encoding="utf-8")
+
+          Path("tests/test_pipeline_model_resolution.py").write_text(
+              '''"""Regression coverage for analyze model/provider precedence."""
+
+          from types import SimpleNamespace
+
+          from unread.analyzer.pipeline import _resolve_analysis_models
+          from unread.config import Settings
+
+
+          def _preset(final: str = "gpt-5.6-luna", filt: str = "gpt-5.6-luna") -> SimpleNamespace:
+              return SimpleNamespace(final_model=final, filter_model=filt)
+
+
+          def test_minimax_ignores_openai_preset_model_pins() -> None:
+              settings = Settings()
+              settings.ai.chat_provider = "minimax"
+              settings.ai.filter_provider = "minimax"
+              settings.ai.chat_model = ""
+              settings.ai.filter_model = ""
+
+              assert _resolve_analysis_models(settings, _preset()) == ("MiniMax-M3", "MiniMax-M3")
+
+
+          def test_explicit_slot_models_win_over_preset_pins() -> None:
+              settings = Settings()
+              settings.ai.chat_provider = "minimax"
+              settings.ai.filter_provider = "minimax"
+              settings.ai.chat_model = "MiniMax-M2.7"
+              settings.ai.filter_model = "MiniMax-M2.7-highspeed"
+
+              assert _resolve_analysis_models(settings, _preset()) == (
+                  "MiniMax-M2.7",
+                  "MiniMax-M2.7-highspeed",
+              )
+
+
+          def test_cli_model_overrides_win_over_slot_models() -> None:
+              settings = Settings()
+              settings.ai.chat_provider = "minimax"
+              settings.ai.filter_provider = "minimax"
+              settings.ai.chat_model = "MiniMax-M3"
+              settings.ai.filter_model = "MiniMax-M3"
+
+              assert _resolve_analysis_models(
+                  settings,
+                  _preset(),
+                  model_override="cli-final",
+                  filter_model_override="cli-filter",
+              ) == ("cli-final", "cli-filter")
+
+
+          def test_openai_keeps_preset_model_pins_when_slot_model_is_empty() -> None:
+              settings = Settings()
+              settings.ai.chat_provider = "openai"
+              settings.ai.filter_provider = "openai"
+              settings.ai.chat_model = ""
+              settings.ai.filter_model = ""
+
+              assert _resolve_analysis_models(settings, _preset("preset-final", "preset-filter")) == (
+                  "preset-final",
+                  "preset-filter",
+              )
+          ''',
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Sync dev dependencies
+        run: uv sync --extra dev
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Format changed Python
+        run: uv run ruff format unread/analyzer/pipeline.py tests/test_pipeline_model_resolution.py
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Targeted tests
+        run: uv run pytest -q tests/test_pipeline_model_resolution.py tests/test_minimax_adapter.py tests/test_resolve_slots.py
+
+      - name: Full test suite
+        run: uv run pytest -q
+
+      - name: Commit tested implementation
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add unread/analyzer/pipeline.py tests/test_pipeline_model_resolution.py
+          git commit -m "fix(analyze): honor per-slot model selection"
+          git push origin HEAD:fix/minimax-m3-anthropic-sdk
