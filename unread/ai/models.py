@@ -267,6 +267,47 @@ _GOOGLE_MODELS: tuple[ModelInfo, ...] = (
 )
 
 
+# ----------------------- MiniMax (refreshed 2026-09-08) -------------------
+#
+# MiniMax M3 pricing is tiered by context. ModelInfo has one price row, so
+# use the current 512K-1M discounted tier ($0.60/$2.40, cache read $0.12)
+# rather than under-estimating a large unread run. Prompts <=512K are billed
+# at a lower tier by MiniMax; unread's estimate is intentionally conservative.
+
+_MINIMAX_MODELS: tuple[ModelInfo, ...] = (
+    ModelInfo(
+        "MiniMax-M3",
+        "MiniMax M3 — default (1M ctx)",
+        "chat",
+        0.60,
+        0.12,
+        2.40,
+        context_window=1_000_000,
+        max_output_tokens=131_072,
+    ),
+    ModelInfo(
+        "MiniMax-M2.7",
+        "MiniMax M2.7 — previous generation",
+        "filter",
+        0.30,
+        0.06,
+        1.20,
+        context_window=204_800,
+        max_output_tokens=131_072,
+    ),
+    ModelInfo(
+        "MiniMax-M2.7-highspeed",
+        "MiniMax M2.7 Highspeed — faster",
+        "filter",
+        0.60,
+        0.06,
+        2.40,
+        context_window=204_800,
+        max_output_tokens=131_072,
+    ),
+)
+
+
 # ----------------------- OpenRouter ---------------------------------------
 #
 # OpenRouter routes to many backends; we list a curated cross-section of
@@ -415,6 +456,7 @@ _LOCAL_MODELS: tuple[ModelInfo, ...] = ()
 _REGISTRY: dict[str, tuple[ModelInfo, ...]] = {
     "openai": _OPENAI_MODELS,
     "anthropic": _ANTHROPIC_MODELS,
+    "minimax": _MINIMAX_MODELS,
     "google": _GOOGLE_MODELS,
     "openrouter": _OPENROUTER_MODELS,
     "local": _LOCAL_MODELS,
@@ -436,6 +478,8 @@ _VISION_CAPABLE_IDS: frozenset[str] = frozenset(
         "claude-opus-4-7",
         "claude-sonnet-4-6",
         "claude-haiku-4-5",
+        # MiniMax M3 is natively multimodal.
+        "MiniMax-M3",
         # Google — all Gemini 2.5 / 3.1 entries accept image parts.
         "gemini-3.1-pro-preview",
         "gemini-3.1-flash-lite-preview",
@@ -546,6 +590,8 @@ def provider_for_model(model_id: str) -> str | None:
         return "anthropic"
     if lower.startswith(("gemini", "google")):
         return "google"
+    if lower.startswith("minimax-"):
+        return "minimax"
     if lower.startswith(("gpt", "o1", "o3", "o4", "chatgpt")):
         return "openai"
     return None
@@ -553,7 +599,7 @@ def provider_for_model(model_id: str) -> str | None:
 
 def supported_providers() -> tuple[str, ...]:
     """Provider names with a curated catalog (ordered for UI consistency)."""
-    return ("openai", "anthropic", "google", "openrouter", "local")
+    return ("openai", "anthropic", "minimax", "google", "openrouter", "local")
 
 
 # Per-provider safety multiplier applied to tiktoken counts. tiktoken
@@ -569,5 +615,6 @@ PROVIDER_TOKEN_SAFETY_MARGIN: dict[str, float] = {
     "openrouter": 1.0,
     "local": 1.0,
     "anthropic": 1.25,
+    "minimax": 1.25,
     "google": 1.25,
 }

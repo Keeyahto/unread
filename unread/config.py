@@ -59,7 +59,9 @@ class OpenAICfg(_StrictCfg):
 # Providers accepted by `UNREAD_AI_<SLOT>_PROVIDER`. Mirrors the dispatch
 # in `unread.ai.providers.make_chat_provider` — a typo here should fail at
 # load with the valid names, not surface mid-run as "Unknown AI provider".
-_VALID_AI_PROVIDERS: frozenset[str] = frozenset({"openai", "openrouter", "anthropic", "google", "local"})
+_VALID_AI_PROVIDERS: frozenset[str] = frozenset(
+    {"openai", "openrouter", "anthropic", "minimax", "google", "local"}
+)
 
 
 class AICfg(_StrictCfg):
@@ -140,6 +142,17 @@ class OpenRouterCfg(_StrictCfg):
 
 
 class AnthropicCfg(_StrictCfg):
+    api_key: str = ""
+
+
+class MiniMaxCfg(_StrictCfg):
+    """MiniMax text / multimodal API credentials.
+
+    Chat and vision use MiniMax's Anthropic-compatible endpoint. The
+    endpoint is fixed by the provider adapter so a generic ``ai.base_url``
+    override can never redirect this key to an unrelated host.
+    """
+
     api_key: str = ""
 
 
@@ -566,6 +579,7 @@ class Settings(BaseSettings):
     ai: AICfg = Field(default_factory=AICfg)
     openrouter: OpenRouterCfg = Field(default_factory=OpenRouterCfg)
     anthropic: AnthropicCfg = Field(default_factory=AnthropicCfg)
+    minimax: MiniMaxCfg = Field(default_factory=MiniMaxCfg)
     google: GoogleCfg = Field(default_factory=GoogleCfg)
     local: LocalCfg = Field(default_factory=LocalCfg)
     sync: SyncCfg = Field(default_factory=SyncCfg)
@@ -821,6 +835,10 @@ def load_settings(config_path: Path | str | None = None) -> Settings:
         raw["anthropic"] = {}
     if api_key := _env("ANTHROPIC_API_KEY"):
         raw["anthropic"]["api_key"] = api_key
+    if "minimax" not in raw:
+        raw["minimax"] = {}
+    if api_key := _env("MINIMAX_API_KEY"):
+        raw["minimax"]["api_key"] = api_key
     if "google" not in raw:
         raw["google"] = {}
     if api_key := _env("GOOGLE_API_KEY"):
@@ -963,6 +981,8 @@ def load_settings(config_path: Path | str | None = None) -> Settings:
             settings.openrouter.api_key = k
         if not settings.anthropic.api_key and (k := persisted.get("anthropic.api_key")):
             settings.anthropic.api_key = k
+        if not settings.minimax.api_key and (k := persisted.get("minimax.api_key")):
+            settings.minimax.api_key = k
         if not settings.google.api_key and (k := persisted.get("google.api_key")):
             settings.google.api_key = k
         if not settings.bot.token and (t := persisted.get("telegram.bot_token")):

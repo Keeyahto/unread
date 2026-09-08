@@ -185,6 +185,13 @@ _TOP_SETTINGS: tuple[SettingDef, ...] = (
         "set_desc_api_key_anthropic",
     ),
     SettingDef(
+        "__api_key:minimax__",
+        "settings_cat_api_keys",
+        "api_key",
+        "set_label_api_key_minimax",
+        "set_desc_api_key_minimax",
+    ),
+    SettingDef(
         "__api_key:google__",
         "settings_cat_api_keys",
         "api_key",
@@ -299,10 +306,10 @@ _TUNING_SETTINGS: tuple[SettingDef, ...] = (
 # why openrouter is excluded — its endpoint rejects multipart). Chat /
 # filter / vision accept all five providers.
 _SLOT_PROVIDERS: dict[str, tuple[str, ...]] = {
-    "chat": ("openai", "openrouter", "anthropic", "google", "local"),
-    "filter": ("openai", "openrouter", "anthropic", "google", "local"),
+    "chat": ("openai", "openrouter", "anthropic", "minimax", "google", "local"),
+    "filter": ("openai", "openrouter", "anthropic", "minimax", "google", "local"),
     "audio": ("openai", "local"),
-    "vision": ("openai", "openrouter", "anthropic", "google", "local"),
+    "vision": ("openai", "openrouter", "anthropic", "minimax", "google", "local"),
 }
 
 _SLOT_ROLE: dict[str, str] = {
@@ -330,6 +337,7 @@ _PROVIDER_SECRET_KEYS: dict[str, str] = {
     "openai": "openai.api_key",
     "openrouter": "openrouter.api_key",
     "anthropic": "anthropic.api_key",
+    "minimax": "minimax.api_key",
     "google": "google.api_key",
 }
 
@@ -339,6 +347,7 @@ _PROVIDER_KEY_URLS: dict[str, str] = {
     "openai": "https://platform.openai.com/api-keys",
     "openrouter": "https://openrouter.ai/keys",
     "anthropic": "https://console.anthropic.com/settings/keys",
+    "minimax": "https://platform.minimax.io/user-center/basic-information/interface-key",
     "google": "https://aistudio.google.com/app/apikey",
 }
 
@@ -1012,7 +1021,7 @@ def _allow_custom_model(provider: str, role: str) -> bool:
         return True
     if role == "audio":
         return False
-    return provider not in {"anthropic", "google"}
+    return provider not in {"anthropic", "minimax", "google"}
 
 
 async def _pick_model_for_slot(
@@ -1453,6 +1462,8 @@ def _provider_api_key(s: Any, provider: str) -> str:
         return s.openrouter.api_key or ""
     if name == "anthropic":
         return s.anthropic.api_key or ""
+    if name == "minimax":
+        return s.minimax.api_key or ""
     if name == "google":
         return s.google.api_key or ""
     return ""

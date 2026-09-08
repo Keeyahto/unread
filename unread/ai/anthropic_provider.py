@@ -60,6 +60,7 @@ class AnthropicProvider:
     supports_web_search = True
 
     name = "anthropic"
+    display_name = "Anthropic"
     # Defaults track the current generally-available lineup (refreshed
     # 2026-05-01). The user can switch via `ai.chat_model` /
     # `ai.filter_model`; the full per-provider catalog lives in
@@ -159,7 +160,7 @@ class AnthropicProvider:
                     err=type(e).__name__,
                 )
                 _user_visible_retry_status(
-                    f"Anthropic {type(e).__name__} — retrying in {delay:.0f}s "
+                    f"{self.display_name} {type(e).__name__} — retrying in {delay:.0f}s "
                     f"(attempt {attempt + 1}/{max_retries})…"
                 )
                 await asyncio.sleep(delay)
@@ -175,7 +176,7 @@ class AnthropicProvider:
                         status=e.status_code,
                     )
                     _user_visible_retry_status(
-                        f"Anthropic {e.status_code} — retrying in {delay:.0f}s "
+                        f"{self.display_name} {e.status_code} — retrying in {delay:.0f}s "
                         f"(attempt {attempt + 1}/{max_retries})…"
                     )
                     await asyncio.sleep(delay)

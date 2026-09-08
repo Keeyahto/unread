@@ -156,8 +156,8 @@ def test_wizard_local_provider_no_key(isolated_home: Path, mock_telethon) -> Non
     """Provider=Local → no API key prompt, `local.base_url` may be customized."""
     from unread.tg.commands import cmd_init
 
-    # Folder=1, provider=5 (local), base_url=<empty: keep default>, Telegram=n
-    prompt_inputs = iter(["1", "5", ""])
+    # Folder=1, provider=6 (local), base_url=<empty: keep default>, Telegram=n
+    prompt_inputs = iter(["1", "6", ""])
     with (
         patch("typer.prompt", side_effect=lambda *a, **kw: next(prompt_inputs)),
         patch("typer.confirm", return_value=False),
@@ -193,9 +193,9 @@ def test_wizard_skip_ai_provider(isolated_home: Path, mock_telethon) -> None:
     """
     from unread.tg.commands import cmd_init
 
-    # Folder=1, provider=6 (Skip — last entry after the 5 providers
+    # Folder=1, provider=7 (Skip — last entry after the 6 providers
     # plus a separator). Telegram=n. The Skip path takes no key prompt.
-    prompt_inputs = iter(["1", "6"])
+    prompt_inputs = iter(["1", "7"])
     with (
         patch("typer.prompt", side_effect=lambda *a, **kw: next(prompt_inputs)),
         patch("typer.confirm", return_value=False),

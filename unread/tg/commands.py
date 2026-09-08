@@ -310,6 +310,8 @@ def _active_provider_has_key(settings) -> bool:  # type: ignore[no-untyped-def]
         return bool(settings.openrouter.api_key)
     if name == "anthropic":
         return bool(settings.anthropic.api_key)
+    if name == "minimax":
+        return bool(settings.minimax.api_key)
     if name == "google":
         return bool(settings.google.api_key)
     # Local mode is "configured" once `ai.chat_provider == "local"` is
@@ -352,6 +354,13 @@ _PROVIDER_CHOICES: tuple[tuple[str, str, str | None, str, str], ...] = (
     ),
     (
         "5",
+        "minimax",
+        "minimax.api_key",
+        "https://platform.minimax.io/user-center/basic-information/interface-key",
+        "MiniMax M3. Anthropic-compatible chat + image. No Whisper-shape audio.",
+    ),
+    (
+        "6",
         "local",
         None,  # no API key — base_url + (optional) placeholder key
         "",
@@ -377,7 +386,7 @@ async def _run_provider_step() -> None:
         "\n[bold]Pick a default provider — applied to every slot (chat / filter / audio / image).[/]\n"
         "[grey70]You can mix providers later (e.g. Anthropic for chat + OpenAI for audio) "
         "via `unread settings` → Models. Audio is restricted to providers with a "
-        "Whisper-shape API: openai, openrouter, local — picking anthropic / google "
+        "Whisper-shape API: openai, local — picking anthropic / minimax / google "
         "here will snap the audio slot back to openai.[/]\n"
     )
 
@@ -424,7 +433,7 @@ async def _run_provider_step() -> None:
     if chosen == "__skip__":
         console.print(
             "[grey70]Skipped — `analyze` / `ask` will need an AI key. "
-            "Run `unread settings` (or set `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / etc. "
+            "Run `unread settings` (or set `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` / `MINIMAX_API_KEY` / etc. "
             "in `~/.unread/.env`) when you're ready.[/]"
         )
         return
@@ -509,6 +518,8 @@ def _provider_key_value(settings, name: str) -> str:  # type: ignore[no-untyped-
         return settings.openrouter.api_key or ""
     if name == "anthropic":
         return settings.anthropic.api_key or ""
+    if name == "minimax":
+        return settings.minimax.api_key or ""
     if name == "google":
         return settings.google.api_key or ""
     return ""

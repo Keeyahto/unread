@@ -793,6 +793,19 @@ _STRINGS: dict[str, dict[str, str]] = {
             "Аудио нет (для слота audio выбирайте OpenAI / OpenRouter)."
         ),
     },
+    "set_label_api_key_minimax": {"en": "MiniMax API key", "ru": "API-ключ MiniMax"},
+    "set_desc_api_key_minimax": {
+        "en": (
+            "MiniMax M3 through the Anthropic-compatible Messages API. Use MiniMax for "
+            "chat / filter / vision. M3 is the default for all three slots; audio stays "
+            "on OpenAI / local."
+        ),
+        "ru": (
+            "MiniMax M3 через Anthropic-совместимый Messages API. MiniMax доступен для "
+            "chat / filter / vision. Во всех трёх слотах по умолчанию используется M3; "
+            "audio остаётся на OpenAI / local."
+        ),
+    },
     "set_label_api_key_google": {"en": "Google API key", "ru": "API-ключ Google"},
     "set_desc_api_key_google": {
         "en": (

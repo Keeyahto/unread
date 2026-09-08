@@ -21,6 +21,8 @@
 #                Set `[openrouter] api_key` (or run `unread init`).
 #   anthropic  — Claude (claude-sonnet-4-6 / claude-haiku-4-5 by default).
 #                Set `[anthropic] api_key`.
+#   minimax    — MiniMax M3 through the Anthropic-compatible Messages API.
+#                M3 is the default for chat / filter / vision. Set `[minimax] api_key`.
 #   google     — Gemini Developer API (gemini-2.5-flash / -lite by default).
 #                Set `[google] api_key`.
 #   local      — Self-hosted OpenAI-compatible server (Ollama / LM Studio
@@ -47,6 +49,9 @@
 
 # [anthropic]
 # api_key = "sk-ant-…"
+
+# [minimax]
+# api_key = "sk-…"
 
 # [google]
 # api_key = "AI…"

@@ -53,6 +53,22 @@ def test_per_slot_provider_overrides_default():
     assert resolve_audio(s)[0] == "openai"
 
 
+def test_minimax_defaults_to_m3_for_chat_filter_and_vision():
+    s = _settings_with(
+        chat_provider="minimax",
+        filter_provider="minimax",
+        vision_provider="minimax",
+    )
+    assert resolve_chat(s) == ("minimax", "MiniMax-M3")
+    assert resolve_filter(s) == ("minimax", "MiniMax-M3")
+    assert resolve_vision(s) == ("minimax", "MiniMax-M3")
+
+
+def test_minimax_audio_snaps_to_openai():
+    s = _settings_with(audio_provider="minimax")
+    assert resolve_audio(s)[0] == "openai"
+
+
 def test_per_slot_model_pin_wins_over_provider_default():
     s = _settings_with(chat_provider="anthropic", chat_model="claude-opus-4-7")
     assert resolve_chat(s) == ("anthropic", "claude-opus-4-7")

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from unread.ai.anthropic_provider import AnthropicProvider
 from unread.ai.google_provider import GoogleProvider
+from unread.ai.minimax_provider import MiniMaxProvider
 from unread.ai.models import (
     all_known_models,
     find_model,
@@ -30,7 +31,7 @@ from unread.util.pricing import chat_cost, chat_pricing_for
 
 def test_supported_providers_covers_all_adapters():
     names = set(supported_providers())
-    assert {"openai", "anthropic", "google", "openrouter", "local"} <= names
+    assert {"openai", "anthropic", "minimax", "google", "openrouter", "local"} <= names
 
 
 def test_provider_defaults_appear_in_their_catalog():
@@ -38,6 +39,7 @@ def test_provider_defaults_appear_in_their_catalog():
     for provider, default in (
         ("openai", OpenAIProvider.default_chat_model),
         ("anthropic", AnthropicProvider.default_chat_model),
+        ("minimax", MiniMaxProvider.default_chat_model),
         ("google", GoogleProvider.default_chat_model),
     ):
         ids = {m.id for m in models_for_provider(provider)}
@@ -105,6 +107,7 @@ def test_all_known_models_contains_each_providers_flagships():
         "gpt-5.4-mini",
         "claude-opus-4-7",
         "claude-sonnet-4-6",
+        "MiniMax-M3",
         "gemini-2.5-flash",
     } <= ids
 
@@ -166,7 +169,14 @@ def test_picker_provider_routing_ai_keys_follow_active_provider():
     assert set(_SLOT_PROVIDERS["audio"]) == {"openai", "local"}
     # Chat / filter / vision accept all five providers.
     for slot in ("chat", "filter", "vision"):
-        assert set(_SLOT_PROVIDERS[slot]) == {"openai", "openrouter", "anthropic", "google", "local"}
+        assert set(_SLOT_PROVIDERS[slot]) == {
+            "openai",
+            "openrouter",
+            "anthropic",
+            "minimax",
+            "google",
+            "local",
+        }
     # Role mapping mirrors the slot name.
     assert _SLOT_ROLE == {"chat": "chat", "filter": "filter", "audio": "audio", "vision": "vision"}
 
