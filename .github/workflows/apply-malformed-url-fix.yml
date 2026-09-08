@@ -1,0 +1,55 @@
+name: Apply malformed URL fix
+
+on:
+  push:
+    branches:
+      - fix/malformed-message-urls
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/malformed-message-urls
+
+      - name: Apply source and tests
+        run: python .github/apply_malformed_url_fix.py
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.11
+
+      - name: Sync dev dependencies
+        run: uv sync --extra dev
+
+      - name: Format and lint
+        run: |
+          uv run ruff format unread/enrich/link.py tests/test_enrich_link.py
+          uv run ruff check . --exclude .github/apply_malformed_url_fix.py
+          uv run ruff format --check . --exclude .github/apply_malformed_url_fix.py
+
+      - name: Targeted regression tests
+        run: uv run pytest -q tests/test_enrich_link.py tests/test_enrich_pipeline.py tests/test_pipeline_model_resolution.py tests/test_minimax_adapter.py
+
+      - name: Full test suite
+        run: uv run pytest -q
+
+      - name: Commit validated fix
+        run: |
+          rm .github/workflows/apply-malformed-url-fix.yml .github/apply_malformed_url_fix.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "fix(enrich): skip malformed message URLs"
+          git push origin HEAD:fix/malformed-message-urls
