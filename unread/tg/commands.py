@@ -304,21 +304,7 @@ def _active_provider_has_key(settings) -> bool:  # type: ignore[no-untyped-def]
     from unread.ai.providers import _resolve_provider_name
 
     name = _resolve_provider_name(settings, "chat")
-    if name == "openai":
-        return bool(settings.openai.api_key)
-    if name == "openrouter":
-        return bool(settings.openrouter.api_key)
-    if name == "anthropic":
-        return bool(settings.anthropic.api_key)
-    if name == "minimax":
-        return bool(settings.minimax.api_key)
-    if name == "google":
-        return bool(settings.google.api_key)
-    # Local mode is "configured" once `ai.chat_provider == "local"` is
-    # persisted — the base_url has a sensible default and most
-    # servers don't enforce a key. Unknown provider names fall through
-    # to False so the wizard re-prompts.
-    return name == "local"
+    return _provider_key_present(settings, name)
 
 
 # Provider-selection menu metadata. Keep in sync with `unread.ai.providers`.
@@ -523,6 +509,26 @@ def _provider_key_value(settings, name: str) -> str:  # type: ignore[no-untyped-
     if name == "google":
         return settings.google.api_key or ""
     return ""
+
+
+def _provider_key_present(settings, name: str) -> bool:  # type: ignore[no-untyped-def]
+    """Whether ``name`` has the credential needed for API calls.
+
+    Local endpoints are intentionally key-optional. Hosted providers share
+    the same lookup used by the setup wizard so doctor cannot silently drift
+    out of sync when a new provider is added.
+    """
+    name = name.strip().lower()
+    if name == "local":
+        return True
+    return bool(_provider_key_value(settings, name))
+
+
+def _active_slot_providers(settings) -> dict[str, str]:  # type: ignore[no-untyped-def]
+    """Resolve provider names for the four runtime capability slots."""
+    from unread.ai.providers import _resolve_provider_name
+
+    return {slot: _resolve_provider_name(settings, slot) for slot in ("chat", "filter", "audio", "vision")}
 
 
 async def _smoke_test_openai(api_key: str) -> None:
@@ -869,6 +875,8 @@ async def cmd_doctor() -> None:
 
     _api_hash_ct = _ct(settings.telegram.api_hash)
     _openai_ct = _ct(settings.openai.api_key)
+    active_slot_providers = _active_slot_providers(settings)
+    openai_required = "openai" in active_slot_providers.values()
 
     if _api_hash_ct:
         _line(
@@ -892,8 +900,10 @@ async def cmd_doctor() -> None:
         )
     elif settings.openai.api_key:
         _line(ok, "OPENAI_API_KEY present")
-    else:
+    elif openai_required:
         _line(fail, "OPENAI_API_KEY missing", _openai_hint)
+    else:
+        _line(ok, "OPENAI_API_KEY", "not configured (not required by active slots)")
 
     # 3. ffmpeg
     ffmpeg_path = shutil.which(settings.media.ffmpeg_path) or shutil.which("ffmpeg")
@@ -1209,22 +1219,9 @@ async def cmd_doctor() -> None:
     # 7b. Per-slot provider key check. Each of the four slots resolves
     # to its own (provider, model); doctor reports whether the chosen
     # provider has a usable key. Local needs no key (placeholder OK).
-    from unread.ai.providers import _resolve_provider_name
-
-    def _slot_key_present(slot_provider: str) -> bool:
-        if slot_provider == "openai":
-            return bool(settings.openai.api_key)
-        if slot_provider == "openrouter":
-            return bool(settings.openrouter.api_key)
-        if slot_provider == "anthropic":
-            return bool(settings.anthropic.api_key)
-        if slot_provider == "google":
-            return bool(settings.google.api_key)
-        return slot_provider == "local"
-
     for slot in ("chat", "filter", "audio", "vision"):
-        slot_provider = _resolve_provider_name(settings, slot)
-        if _slot_key_present(slot_provider):
+        slot_provider = active_slot_providers[slot]
+        if _provider_key_present(settings, slot_provider):
             _line(ok, f"{slot} slot", slot_provider)
         else:
             _line(
