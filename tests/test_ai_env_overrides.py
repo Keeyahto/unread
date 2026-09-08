@@ -25,6 +25,14 @@ def test_chat_provider_from_env(monkeypatch) -> None:
     assert load_settings().ai.chat_provider == "openrouter"
 
 
+def test_minimax_provider_and_key_from_env(monkeypatch) -> None:
+    monkeypatch.setenv("UNREAD_AI_CHAT_PROVIDER", "minimax")
+    monkeypatch.setenv("MINIMAX_API_KEY", "sk-mm-test")
+    s = load_settings()
+    assert s.ai.chat_provider == "minimax"
+    assert s.minimax.api_key == "sk-mm-test"
+
+
 def test_chat_model_from_env(monkeypatch) -> None:
     monkeypatch.setenv("UNREAD_AI_CHAT_MODEL", "openai/gpt-5.6-luna")
     assert load_settings().ai.chat_model == "openai/gpt-5.6-luna"

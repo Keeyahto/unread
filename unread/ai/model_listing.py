@@ -160,6 +160,30 @@ async def _fetch_anthropic(settings) -> list[str]:  # type: ignore[no-untyped-de
         return []
 
 
+async def _fetch_minimax(settings) -> list[str]:  # type: ignore[no-untyped-def]
+    """Fetch models from MiniMax's documented Anthropic-compatible list endpoint."""
+    if not settings.minimax.api_key:
+        return []
+    try:
+        from anthropic import AsyncAnthropic
+    except ImportError:
+        return []
+    try:
+        from unread.ai.minimax_provider import MINIMAX_ANTHROPIC_BASE_URL
+
+        client = AsyncAnthropic(
+            api_key=settings.minimax.api_key,
+            base_url=MINIMAX_ANTHROPIC_BASE_URL,
+            timeout=settings.openai.request_timeout_sec,
+            max_retries=0,
+        )
+        page = await client.models.list()
+        return [mid for m in (getattr(page, "data", None) or []) if (mid := getattr(m, "id", "") or "")]
+    except Exception as e:
+        log.debug("model_listing.fetch_failed", provider="minimax", err=str(e)[:200])
+        return []
+
+
 async def _fetch_google(settings) -> list[str]:  # type: ignore[no-untyped-def]
     """Fetch models via google-genai's `aio.models.list`."""
     if not settings.google.api_key:
@@ -219,6 +243,8 @@ async def fetch_models(provider: str, role: str, settings) -> list[str]:  # type
         raw = await _fetch_openai_compat(name, settings)
     elif name == "anthropic":
         raw = await _fetch_anthropic(settings)
+    elif name == "minimax":
+        raw = await _fetch_minimax(settings)
     elif name == "google":
         raw = await _fetch_google(settings)
     else:
@@ -296,6 +322,8 @@ async def _verify_uncached(name: str, settings) -> tuple[bool, str]:  # type: ig
         return await _verify_openai_compat(name, settings)
     if name == "anthropic":
         return await _verify_anthropic(settings)
+    if name == "minimax":
+        return await _verify_minimax(settings)
     if name == "google":
         return await _verify_google(settings)
     return False, f"unknown provider: {name!r}"
@@ -362,6 +390,30 @@ async def _verify_anthropic(settings) -> tuple[bool, str]:  # type: ignore[no-un
     try:
         client = AsyncAnthropic(
             api_key=settings.anthropic.api_key,
+            timeout=min(10.0, settings.openai.request_timeout_sec),
+            max_retries=0,
+        )
+        await client.models.list()
+        return True, ""
+    except Exception as e:
+        if hasattr(e, "status_code") and getattr(e, "status_code", 0) == 401:
+            return False, "auth failed (invalid API key)"
+        return False, str(e)[:200] or type(e).__name__
+
+
+async def _verify_minimax(settings) -> tuple[bool, str]:  # type: ignore[no-untyped-def]
+    if not settings.minimax.api_key:
+        return False, "no API key"
+    try:
+        from anthropic import AsyncAnthropic
+    except ImportError:
+        return False, "anthropic SDK not installed"
+    try:
+        from unread.ai.minimax_provider import MINIMAX_ANTHROPIC_BASE_URL
+
+        client = AsyncAnthropic(
+            api_key=settings.minimax.api_key,
+            base_url=MINIMAX_ANTHROPIC_BASE_URL,
             timeout=min(10.0, settings.openai.request_timeout_sec),
             max_retries=0,
         )

@@ -53,6 +53,7 @@ _KEY_FIELD: dict[str, str] = {
     "openai": "openai.api_key",
     "openrouter": "openrouter.api_key",
     "anthropic": "anthropic.api_key",
+    "minimax": "minimax.api_key",
     "google": "google.api_key",
     "local": "",
 }

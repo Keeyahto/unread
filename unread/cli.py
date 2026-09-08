@@ -452,6 +452,8 @@ def _active_provider_credentials_present() -> bool:
         return bool(s.openrouter.api_key)
     if name == "anthropic":
         return bool(s.anthropic.api_key)
+    if name == "minimax":
+        return bool(s.minimax.api_key)
     if name == "google":
         return bool(s.google.api_key)
     # Local mode — base_url + placeholder key are always present.
@@ -499,6 +501,7 @@ def _print_first_run_banner(missing: str = "both") -> None:
     ai_links = (
         "  OpenAI     https://platform.openai.com/api-keys\n"
         "  Anthropic  https://console.anthropic.com/settings/keys\n"
+        "  MiniMax    https://platform.minimax.io/user-center/basic-information/interface-key\n"
         "  Google     https://aistudio.google.com/app/apikey\n"
         "  OpenRouter https://openrouter.ai/keys"
     )
@@ -510,7 +513,7 @@ def _print_first_run_banner(missing: str = "both") -> None:
         links_block = openai_link
     elif missing == "ai":
         title = _t("cred_banner_title_ai")
-        env_lines = "  # any of: OPENAI_API_KEY / ANTHROPIC_API_KEY / GOOGLE_API_KEY / OPENROUTER_API_KEY"
+        env_lines = "  # any of: OPENAI_API_KEY / ANTHROPIC_API_KEY / MINIMAX_API_KEY / GOOGLE_API_KEY / OPENROUTER_API_KEY"
         providers_note = _t("cred_banner_providers_note")
         links_block = ai_links
     elif missing == "telegram":
@@ -1695,6 +1698,7 @@ def _print_provider_credentials_banner(provider: str) -> None:
         "openai": ("OpenAI", "OPENAI_API_KEY=sk-…"),
         "openrouter": ("OpenRouter", "OPENROUTER_API_KEY=sk-or-…"),
         "anthropic": ("Anthropic (Claude)", "ANTHROPIC_API_KEY=sk-ant-…"),
+        "minimax": ("MiniMax (M3)", "MINIMAX_API_KEY=sk-…"),
         "google": ("Google (Gemini)", "GOOGLE_API_KEY=AI…"),
         "local": ("local server", "<set local.base_url in config.toml>"),
     }

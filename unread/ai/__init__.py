@@ -4,12 +4,14 @@
 filter (cheap-pass), audio (transcription), vision (image
 understanding) — through a per-slot `(provider, model)` pair. The
 active adapter for each slot is picked by `settings.ai.<slot>_provider`
-(values: openai | openrouter | anthropic | google | local).
+(values: openai | openrouter | anthropic | minimax | google | local).
 
   - `openai`     — OpenAI Chat / Whisper / vision via `AsyncOpenAI`.
   - `openrouter` — same SDK shape, pointed at OpenRouter's endpoint.
   - `anthropic`  — `anthropic.AsyncAnthropic` (`messages.create`),
                    chat + vision (image blocks).
+  - `minimax`    — MiniMax M3 via the Anthropic-compatible Messages API,
+                   chat + vision.
   - `google`     — `google.genai.Client` (Gemini), chat + vision.
   - `local`      — OpenAI-compatible server (Ollama / LM Studio /
                    vLLM); chat + Whisper-shape audio + vision when the

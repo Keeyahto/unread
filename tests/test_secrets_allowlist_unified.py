@@ -34,6 +34,7 @@ def test_secret_keys_include_every_chat_provider() -> None:
         "openai.api_key",
         "openrouter.api_key",
         "anthropic.api_key",
+        "minimax.api_key",
         "google.api_key",
         "telegram.session_string",
         # `unread bot` @BotFather token; added alongside the bot subcommand.

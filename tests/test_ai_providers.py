@@ -38,6 +38,8 @@ def _settings_with(provider: str, **kwargs: str) -> Settings:
         s.openrouter.api_key = k
     if k := kwargs.get("anthropic_api_key"):
         s.anthropic.api_key = k
+    if k := kwargs.get("minimax_api_key"):
+        s.minimax.api_key = k
     if k := kwargs.get("google_api_key"):
         s.google.api_key = k
     return s
@@ -65,6 +67,15 @@ def test_anthropic_provider_dispatch() -> None:
     assert p.default_chat_model.startswith("claude-")
 
 
+def test_minimax_provider_dispatch() -> None:
+    s = _settings_with("minimax", minimax_api_key="sk-mm-x")
+    p = make_chat_provider(s)
+    assert p.name == "minimax"
+    assert p.default_chat_model == "MiniMax-M3"
+    assert p.default_filter_model == "MiniMax-M3"
+    assert p.supports_web_search is False
+
+
 def test_google_provider_dispatch() -> None:
     s = _settings_with("google", google_api_key="g-x")
     p = make_chat_provider(s)
@@ -85,7 +96,7 @@ def test_unknown_provider_rejected() -> None:
     # Error message must enumerate the valid options so the user can fix
     # their config without grepping the source.
     msg = str(exc.value)
-    for name in ("openai", "openrouter", "anthropic", "google", "local"):
+    for name in ("openai", "openrouter", "anthropic", "minimax", "google", "local"):
         assert name in msg
 
 
@@ -95,6 +106,7 @@ def test_unknown_provider_rejected() -> None:
         ("openai", "openai_api_key"),
         ("openrouter", "openrouter_api_key"),
         ("anthropic", "anthropic_api_key"),
+        ("minimax", "minimax_api_key"),
         ("google", "google_api_key"),
     ],
 )

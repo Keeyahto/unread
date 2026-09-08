@@ -19,7 +19,7 @@ from unread.settings.commands import (
 
 def test_visible_settings_is_identity():
     """The legacy provider-aware filter is gone; pool round-trips unchanged."""
-    for active in ("openai", "anthropic", "google", "openrouter", "local"):
+    for active in ("openai", "anthropic", "minimax", "google", "openrouter", "local"):
         assert _visible_settings(active, _SETTINGS) == _SETTINGS
 
 
@@ -29,13 +29,14 @@ def test_top_level_has_four_model_slots():
     assert slot_keys == {"__slot_chat__", "__slot_filter__", "__slot_audio__", "__slot_vision__"}
 
 
-def test_top_level_has_five_api_key_rows():
+def test_top_level_has_six_api_key_rows():
     """Each provider (incl. local URL) gets one API-keys row."""
     api_keys = {sd.key for sd in _TOP_SETTINGS if sd.kind == "api_key"}
     assert api_keys == {
         "__api_key:openai__",
         "__api_key:openrouter__",
         "__api_key:anthropic__",
+        "__api_key:minimax__",
         "__api_key:google__",
         "__api_key:local__",
     }
@@ -49,11 +50,12 @@ def test_audio_slot_excludes_non_whisper_providers():
     `unread.ai.providers._AUDIO_PROVIDERS`."""
     assert "anthropic" not in _SLOT_PROVIDERS["audio"]
     assert "google" not in _SLOT_PROVIDERS["audio"]
+    assert "minimax" not in _SLOT_PROVIDERS["audio"]
     assert "openrouter" not in _SLOT_PROVIDERS["audio"]
     assert set(_SLOT_PROVIDERS["audio"]) == {"openai", "local"}
 
 
 def test_chat_filter_vision_slots_accept_all_providers():
-    expected = {"openai", "openrouter", "anthropic", "google", "local"}
+    expected = {"openai", "openrouter", "anthropic", "minimax", "google", "local"}
     for slot in ("chat", "filter", "vision"):
         assert set(_SLOT_PROVIDERS[slot]) == expected

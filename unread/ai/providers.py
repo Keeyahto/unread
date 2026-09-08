@@ -175,13 +175,17 @@ def make_chat_provider(settings) -> ChatProvider:  # type: ignore[no-untyped-def
         from unread.ai.anthropic_provider import AnthropicProvider
 
         return AnthropicProvider(settings)
+    if name == "minimax":
+        from unread.ai.minimax_provider import MiniMaxProvider
+
+        return MiniMaxProvider(settings)
     if name == "google":
         from unread.ai.google_provider import GoogleProvider
 
         return GoogleProvider(settings)
     raise ProviderUnavailableError(
         f"Unknown AI provider {name!r}. Set `ai.provider` to one of: "
-        "openai, openrouter, anthropic, google, local."
+        "openai, openrouter, anthropic, minimax, google, local."
     )
 
 
@@ -209,6 +213,10 @@ def _provider_class_defaults(name: str) -> tuple[str, str]:
         from unread.ai.anthropic_provider import AnthropicProvider
 
         return AnthropicProvider.default_chat_model, AnthropicProvider.default_filter_model
+    if name == "minimax":
+        from unread.ai.minimax_provider import MiniMaxProvider
+
+        return MiniMaxProvider.default_chat_model, MiniMaxProvider.default_filter_model
     if name == "google":
         from unread.ai.google_provider import GoogleProvider
 
@@ -262,6 +270,7 @@ _DEFAULT_VISION_MODEL: dict[str, str] = {
     "openai": "gpt-4o-mini",
     "openrouter": "openai/gpt-4o-mini",
     "anthropic": "claude-haiku-4-5",
+    "minimax": "MiniMax-M3",
     "google": "gemini-2.5-flash",
     "local": "qwen2-vl",
 }

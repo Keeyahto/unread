@@ -230,6 +230,7 @@ class AnthropicVisionProvider:
     """
 
     name = "anthropic"
+    display_name = "Anthropic"
     default_vision_model = "claude-haiku-4-5"
 
     def __init__(self, settings) -> None:  # type: ignore[no-untyped-def]
@@ -311,7 +312,7 @@ class AnthropicVisionProvider:
                     err=type(e).__name__,
                 )
                 _user_visible_retry_status(
-                    f"Anthropic {type(e).__name__} — retrying in {delay:.0f}s "
+                    f"{self.display_name} {type(e).__name__} — retrying in {delay:.0f}s "
                     f"(attempt {attempt + 1}/{max_retries})…"
                 )
                 await asyncio.sleep(delay)
@@ -478,9 +479,13 @@ def make_vision_provider(provider: str, settings) -> VisionProvider:  # type: ig
         return LocalVisionProvider(settings)
     if name == "anthropic":
         return AnthropicVisionProvider(settings)
+    if name == "minimax":
+        from unread.ai.minimax_vision_provider import MiniMaxVisionProvider
+
+        return MiniMaxVisionProvider(settings)
     if name == "google":
         return GoogleVisionProvider(settings)
     raise ProviderUnavailableError(
         f"Unknown vision provider {name!r}. Set `ai.vision_provider` to one of: "
-        "openai, openrouter, anthropic, google, local."
+        "openai, openrouter, anthropic, minimax, google, local."
     )

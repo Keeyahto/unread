@@ -32,6 +32,7 @@ SECRET_KEYS: frozenset[str] = frozenset(
         "openai.api_key",
         "openrouter.api_key",
         "anthropic.api_key",
+        "minimax.api_key",
         "google.api_key",
         # Telethon `StringSession.save()` payload, written ONLY when the
         # passphrase backend is active. Replaces the on-disk
