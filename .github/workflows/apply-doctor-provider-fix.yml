@@ -16,8 +16,8 @@ jobs:
         with:
           ref: fix/doctor-provider-keys
 
-      - name: Apply patch
-        run: git apply --check .github/apply-doctor-provider-fix.patch && git apply .github/apply-doctor-provider-fix.patch
+      - name: Apply source and tests
+        run: python .github/apply_doctor_provider_fix.py
 
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
@@ -47,7 +47,7 @@ jobs:
 
       - name: Commit validated fix
         run: |
-          rm .github/workflows/apply-doctor-provider-fix.yml .github/apply-doctor-provider-fix.patch
+          rm .github/workflows/apply-doctor-provider-fix.yml .github/apply-doctor-provider-fix.patch .github/apply_doctor_provider_fix.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
