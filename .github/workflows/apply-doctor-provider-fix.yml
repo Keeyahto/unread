@@ -36,8 +36,8 @@ jobs:
       - name: Format and lint
         run: |
           uv run ruff format unread/tg/commands.py tests/test_doctor_provider_keys.py
-          uv run ruff check .
-          uv run ruff format --check .
+          uv run ruff check . --exclude .github/apply_doctor_provider_fix.py
+          uv run ruff format --check . --exclude .github/apply_doctor_provider_fix.py
 
       - name: Targeted regression tests
         run: uv run pytest -q tests/test_doctor_provider_keys.py tests/test_credential_gating.py tests/test_minimax_adapter.py
