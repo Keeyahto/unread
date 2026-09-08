@@ -119,6 +119,44 @@ def _resolve_language(settings: Any) -> str:
     return (locale.language or "en").lower()
 
 
+def _resolve_analysis_models(
+    settings: Any,
+    preset: Preset,
+    *,
+    model_override: str | None = None,
+    filter_model_override: str | None = None,
+) -> tuple[str, str]:
+    """Resolve the actual final/filter model names for an analyze run.
+
+    Precedence is: CLI override -> explicit per-slot model -> preset pin
+    when the slot uses OpenAI -> provider default. Preset frontmatter
+    historically pins OpenAI model IDs; forwarding those IDs to a
+    non-OpenAI provider makes the provider/model pair inconsistent.
+    """
+    from unread.ai.providers import resolve_chat, resolve_filter
+
+    chat_provider, chat_slot_model = resolve_chat(settings)
+    filter_provider, filter_slot_model = resolve_filter(settings)
+    explicit_chat = (getattr(settings.ai, "chat_model", "") or "").strip()
+    explicit_filter = (getattr(settings.ai, "filter_model", "") or "").strip()
+    preset_final = (getattr(preset, "final_model", "") or "").strip()
+    preset_filter = (getattr(preset, "filter_model", "") or "").strip()
+
+    final_model = (
+        (model_override or "").strip()
+        or explicit_chat
+        or (preset_final if chat_provider == "openai" else "")
+        or chat_slot_model
+    )
+    filter_model = (
+        (filter_model_override or "").strip()
+        or explicit_filter
+        or (preset_filter if filter_provider == "openai" else "")
+        or filter_slot_model
+    )
+    return final_model, filter_model
+
+
 def estimate_cost(
     *,
     n_messages: int,
@@ -159,8 +197,7 @@ def estimate_cost(
 
     from unread.util.pricing import chat_pricing_for
 
-    filter_model = preset.filter_model
-    final_model = preset.final_model
+    final_model, filter_model = _resolve_analysis_models(settings, preset)
     if chat_pricing_for(filter_model, settings) is None or chat_pricing_for(final_model, settings) is None:
         return None, None
 
@@ -641,8 +678,12 @@ async def run_analysis(
     # style hint about the *input* content; empty means "auto-detect".
     preset = _load_preset(opts, language=report_language)
 
-    final_model = opts.model_override or preset.final_model or settings.openai.chat_model_default
-    filter_model = opts.filter_model_override or preset.filter_model or settings.openai.filter_model_default
+    final_model, filter_model = _resolve_analysis_models(
+        settings,
+        preset,
+        model_override=opts.model_override,
+        filter_model_override=opts.filter_model_override,
+    )
 
     thread_param = thread_id if thread_id is not None else 0
     log.debug(
