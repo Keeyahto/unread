@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from unread.ai.anthropic_provider import AnthropicProvider
-from unread.ai.minimax_provider import MiniMaxProvider
+from unread.ai.minimax_provider import MiniMaxProvider, _translate_messages_kwargs
 from unread.ai.models import find_model, models_for_provider, provider_for_model
 from unread.ai.providers import ChatResult
 from unread.ai.vision_provider import make_vision_provider
@@ -34,6 +34,34 @@ def test_minimax_vision_uses_m3_default():
     p = make_vision_provider("minimax", _settings())
     assert p.name == "minimax"
     assert p.default_vision_model == "MiniMax-M3"
+
+
+def test_m3_request_translation_uses_extra_body_and_adaptive_thinking():
+    kwargs = _translate_messages_kwargs(
+        {
+            "model": "MiniMax-M3",
+            "max_tokens": 100,
+            "messages": [{"role": "user", "content": "hello"}],
+            "temperature": 0.2,
+        }
+    )
+    assert "temperature" not in kwargs
+    assert kwargs["extra_body"] == {"temperature": 0.2}
+    assert kwargs["thinking"] == {"type": "adaptive"}
+
+
+def test_m27_request_translation_does_not_force_m3_thinking():
+    kwargs = _translate_messages_kwargs(
+        {
+            "model": "MiniMax-M2.7",
+            "max_tokens": 100,
+            "messages": [{"role": "user", "content": "hello"}],
+            "temperature": 0.2,
+        }
+    )
+    assert "temperature" not in kwargs
+    assert kwargs["extra_body"] == {"temperature": 0.2}
+    assert "thinking" not in kwargs
 
 
 @pytest.mark.asyncio
