@@ -1,0 +1,37 @@
+name: Fix MiniMax bootstrap lint
+
+on:
+  push:
+    branches: [feat/minimax-provider]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/minimax-provider
+      - name: Fix lint character and redispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('.github/workflows/apply-minimax.yml')
+          text = p.read_text(encoding='utf-8')
+          old = '512K–1M'
+          assert old in text
+          p.write_text(text.replace(old, '512K-1M', 1), encoding='utf-8')
+          PY
+          rm .github/workflows/fix-minimax-bootstrap.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: fix MiniMax bootstrap lint"
+          git push origin HEAD:feat/minimax-provider
+          gh workflow run apply-minimax.yml --ref feat/minimax-provider
