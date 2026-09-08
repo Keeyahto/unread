@@ -40,7 +40,7 @@ jobs:
           uv run ruff format --check . --exclude .github/apply_malformed_url_fix.py
 
       - name: Targeted regression tests
-        run: uv run pytest -q tests/test_enrich_link.py tests/test_enrich_pipeline.py tests/test_pipeline_model_resolution.py tests/test_minimax_adapter.py
+        run: uv run pytest -q tests/test_enrich_link.py tests/test_pipeline_model_resolution.py tests/test_minimax_adapter.py tests/test_enrich_opts.py
 
       - name: Full test suite
         run: uv run pytest -q
