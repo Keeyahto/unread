@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from unread.ai.minimax_provider import MINIMAX_ANTHROPIC_BASE_URL, MINIMAX_REQUEST_TIMEOUT_SEC
+from unread.ai.minimax_provider import (
+    MINIMAX_ANTHROPIC_BASE_URL,
+    MINIMAX_REQUEST_TIMEOUT_SEC,
+)
 from unread.ai.providers import ProviderUnavailableError
 from unread.ai.vision_provider import AnthropicVisionProvider
 
