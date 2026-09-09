@@ -88,9 +88,9 @@ def test_builtin_presets_are_included_in_wheel() -> None:
 
 
 def test_all_builtin_preset_budgets_have_60k_floor() -> None:
-    # Builtin presets intentionally use generous hard ceilings. Brevity and
-    # output shape belong to each preset's prompt; low token caps must not
-    # truncate map/reduce output or turn retries into repeated paid calls.
+    # Builtin presets intentionally use generous hard ceilings with a 60k
+    # minimum. Brevity and output shape belong to each preset's prompt; low
+    # token caps must not truncate map/reduce output or cause repeated billing.
     for language in ("en", "ru"):
         for name, p in get_presets(language).items():
             assert p.output_budget_tokens >= 60_000, (
