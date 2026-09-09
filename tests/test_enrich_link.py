@@ -36,6 +36,11 @@ def test_extract_urls_empty():
     assert extract_urls("no links here at all") == []
 
 
+def test_extract_urls_soft_skips_malformed_ipv6_like_url():
+    text = "broken https://foo[bar.example/path but valid https://example.com/ok"
+    assert extract_urls(text) == ["https://example.com/ok"]
+
+
 def test_normalize_url_drops_fragment():
     assert _normalize_url("https://a.co/p#section") == "https://a.co/p"
 

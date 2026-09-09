@@ -81,6 +81,23 @@ def _normalize_url(url: str) -> str:
     return urlunparse(parsed._replace(fragment=""))
 
 
+def _normalize_and_host(url: str) -> tuple[str, str] | None:
+    """Normalize ``url`` and return its lowercase host, or soft-skip invalid input.
+
+    ``urllib.parse`` raises ``ValueError('Invalid IPv6 URL')`` for malformed
+    bracketed netlocs such as ``https://foo[bar.example/...``. Telegram
+    messages are untrusted input, so one broken pasted URL must not abort an
+    otherwise valid multi-thousand-message analysis run.
+    """
+    try:
+        normalized = _normalize_url(url)
+        host = (urlparse(normalized).hostname or "").lower()
+    except ValueError as e:
+        log.debug("enrich.link.invalid_url", url=url[:200], err=str(e)[:200])
+        return None
+    return normalized, host
+
+
 def extract_urls(text: str | None) -> list[str]:
     """Return unique URLs from message text, preserving first-seen order.
 
@@ -93,9 +110,10 @@ def extract_urls(text: str | None) -> list[str]:
     seen: dict[str, None] = {}
     for m in _URL_RE.finditer(text):
         raw = m.group(0)
-        normalized = _normalize_url(raw)
-        host = urlparse(normalized).hostname or ""
-        host = host.lower()
+        parsed = _normalize_and_host(raw)
+        if parsed is None:
+            continue
+        normalized, host = parsed
         if host in _SKIP_HOSTS or host.endswith(".t.me"):
             continue
         if normalized not in seen:
@@ -177,8 +195,10 @@ async def enrich_url(
     so `"twitter.com"` skips both twitter.com and x.twitter.com.
     """
     settings = get_settings()
-    normalized = _normalize_url(url)
-    host = (urlparse(normalized).hostname or "").lower()
+    parsed = _normalize_and_host(url)
+    if parsed is None:
+        return None
+    normalized, host = parsed
     if skip_domains:
         for d in skip_domains:
             if d.lower() in host:
