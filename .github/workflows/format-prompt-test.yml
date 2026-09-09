@@ -1,0 +1,28 @@
+name: Format prompt budget test
+
+on:
+  push:
+    branches:
+      - tune/all-preset-budgets-60k
+
+permissions:
+  contents: write
+
+jobs:
+  format-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: tune/all-preset-budgets-60k
+      - uses: astral-sh/setup-uv@v4
+      - run: uv python install 3.11
+      - run: uv sync --extra dev --python 3.11
+      - run: uv run ruff format tests/test_prompts.py
+      - run: |
+          rm .github/workflows/format-prompt-test.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/test_prompts.py .github/workflows/format-prompt-test.yml
+          git commit -m "style(tests): format prompt budget invariant"
+          git push origin HEAD:tune/all-preset-budgets-60k
