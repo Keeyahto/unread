@@ -9,6 +9,12 @@ from unread.ai.providers import ChatResult, ProviderUnavailableError
 
 MINIMAX_ANTHROPIC_BASE_URL = "https://api.minimax.io/anthropic"
 MINIMAX_OPENAI_BASE_URL = "https://api.minimax.io/v1"
+# M3 can legitimately spend several minutes generating large map/reduce
+# responses (builtin presets may allow tens of thousands of output tokens).
+# The old shared OpenAI timeout was 120s, which repeatedly killed an otherwise
+# healthy MiniMax request mid-generation. Keep this provider-specific so
+# changing OpenAI transport settings cannot shorten MiniMax long requests.
+MINIMAX_REQUEST_TIMEOUT_SEC = 1800
 
 
 def _translate_messages_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -83,7 +89,7 @@ class MiniMaxProvider(AnthropicProvider):
         client = AsyncAnthropic(
             api_key=settings.minimax.api_key,
             base_url=MINIMAX_ANTHROPIC_BASE_URL,
-            timeout=settings.openai.request_timeout_sec,
+            timeout=MINIMAX_REQUEST_TIMEOUT_SEC,
             max_retries=0,
         )
         self._client = _MiniMaxClientProxy(client)
