@@ -5,8 +5,8 @@ description: Webpage analysis — TL;DR, key claims, key quotes
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 4000
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 max_chunk_input_tokens: 35000
 hidden: true
 ---

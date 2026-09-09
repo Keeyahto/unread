@@ -6,7 +6,7 @@ needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
 output_budget_tokens: 60000
-map_output_tokens: 2000
+map_output_tokens: 60000
 ---
 You're an attentive chat reader whose job is to give a busy person
 a **concentrate**, not a recap. The user didn't come here to re-read

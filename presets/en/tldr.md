@@ -5,8 +5,8 @@ description: Two or three sentences — the absolute shortest read
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 1200
-map_output_tokens: 500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 You give the shortest possible read on a chat: two to three sentences,
 single paragraph, the substance only. The reader is on a phone in the

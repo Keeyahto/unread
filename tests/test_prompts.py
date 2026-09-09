@@ -21,6 +21,7 @@ from unread.analyzer.prompts import (
     USER_MARKER,
     Preset,
     _parse_frontmatter,
+    get_presets,
     load_custom_preset,
 )
 
@@ -86,6 +87,21 @@ def test_builtin_presets_are_included_in_wheel() -> None:
     assert (PRESETS_DIR / "en" / "summary.md").is_file()
 
 
+def test_all_builtin_preset_budgets_have_60k_floor() -> None:
+    # Builtin presets intentionally use generous hard ceilings with a 60k
+    # minimum. Brevity and output shape belong to each preset's prompt; low
+    # token caps must not truncate map/reduce output or cause repeated billing.
+    for language in ("en", "ru"):
+        for name, p in get_presets(language).items():
+            assert p.output_budget_tokens >= 60_000, (
+                f"{language}/{name} output_budget_tokens={p.output_budget_tokens} "
+                "is below the 60k builtin floor"
+            )
+            assert p.map_output_tokens >= 60_000, (
+                f"{language}/{name} map_output_tokens={p.map_output_tokens} is below the 60k builtin floor"
+            )
+
+
 def test_summary_preset_has_adequate_budget() -> None:
     # The distilled summary is intentionally tighter than the old recap-style
     # one — but it still needs room for Главное + Идеи/решения + Стоит
@@ -99,22 +115,12 @@ def test_summary_preset_has_adequate_budget() -> None:
 
 
 def test_tldr_preset_is_compact_single_paragraph() -> None:
-    # `tldr` is the absolute-shortest read — 2-3 sentences, single
-    # paragraph. The system prompt must forbid headers / bullets /
-    # citations (the markers of structured output). The output budget
-    # is enforced by the prompt, not the token cap — capping the cap
-    # too tight (e.g. 400/600) made multi-chunk forum reduce calls hit
-    # `finish=length` mid-sentence on every run. The cache rule refuses
-    # to store truncated results, so each truncation re-bills the full
-    # prompt on the next run. Allow up to 1500 here to give the reduce
-    # pass on big inputs room to land coherently while the system prompt
-    # still enforces brevity. If you find tldr drifting into "summary
-    # lite", fix the system prompt — not the cap.
+    # `tldr` is the absolute-shortest read — 2-3 sentences, single paragraph.
+    # Compactness is a semantic/prompt requirement, not a hard token ceiling:
+    # builtin budgets are deliberately generous so a large reduce input cannot
+    # end with `finish=length` mid-sentence. If tldr drifts into "summary lite",
+    # tighten the prompt rather than shrinking its map/final budget.
     p = PRESETS["tldr"]
-    assert p.output_budget_tokens <= 1500, (
-        f"tldr output_budget_tokens={p.output_budget_tokens} is too generous — "
-        "the preset is meant to be one paragraph; enforce brevity via the system prompt."
-    )
     assert "no headers" in p.system.lower() or "no structure" in p.system.lower(), (
         "tldr system prompt should explicitly forbid structured output"
     )
