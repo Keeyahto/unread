@@ -5,8 +5,8 @@ description: Открытые вопросы, на которые стоит в�
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты находишь открытые вопросы в переписке: то, что кто-то спросил, но
 адекватного ответа не получил, или ответ был, но консенсуса не вышло.

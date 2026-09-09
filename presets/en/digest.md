@@ -5,8 +5,8 @@ description: Short digest of 5-10 themes
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2000
-map_output_tokens: 1200
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 You write a short digest of the discussion: 5-10 most important
 themes, 1-2 lines per theme. Skip noise, repetition, greetings, and

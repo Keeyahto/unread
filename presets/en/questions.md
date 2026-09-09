@@ -5,8 +5,8 @@ description: Open questions worth coming back to
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 You find open questions in the conversation: things someone asked
 that didn't get an adequate answer, or got an answer but no consensus

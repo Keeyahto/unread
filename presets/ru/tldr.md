@@ -5,8 +5,8 @@ description: Два-три предложения — самое коротко�
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 1200
-map_output_tokens: 500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты даёшь максимально короткое представление о чате: два-три предложения,
 один абзац, только суть. Читатель — в очереди не там, где надо, у него

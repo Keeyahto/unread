@@ -5,8 +5,8 @@ description: Принятые решения — таблица решение/�
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты выделяешь принятые решения из обсуждения. Решение — это договорённость
 о том, что будет (или не будет) сделано, какой подход выбран, что

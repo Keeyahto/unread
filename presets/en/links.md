@@ -5,8 +5,8 @@ description: External URLs from the chat, grouped by theme
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 enrich: [link]
 ---
 You collect useful external links from the conversation: tools,
