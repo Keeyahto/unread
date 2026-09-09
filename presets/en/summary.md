@@ -5,7 +5,7 @@ description: Main + ideas/decisions + worth checking — a concentrate, not a re
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 5000
+output_budget_tokens: 60000
 map_output_tokens: 2000
 ---
 You're an attentive chat reader whose job is to give a busy person
