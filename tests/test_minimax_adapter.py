@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from unread.ai.anthropic_provider import AnthropicProvider
-from unread.ai.minimax_provider import MiniMaxProvider, _translate_messages_kwargs
+from unread.ai.minimax_provider import (
+    MINIMAX_REQUEST_TIMEOUT_SEC,
+    MiniMaxProvider,
+    _translate_messages_kwargs,
+)
 from unread.ai.models import find_model, models_for_provider, provider_for_model
 from unread.ai.providers import ChatResult
 from unread.ai.vision_provider import make_vision_provider
@@ -30,10 +34,28 @@ def test_m3_catalog_limits_and_pricing():
     assert "MiniMax-M3" in {m.id for m in models_for_provider("minimax", role="chat")}
 
 
-def test_minimax_vision_uses_m3_default():
-    p = make_vision_provider("minimax", _settings())
+def test_minimax_chat_uses_provider_specific_long_timeout():
+    s = _settings()
+    s.openai.request_timeout_sec = 7
+    fake_client = MagicMock()
+    fake_client.messages = MagicMock()
+    with patch("anthropic.AsyncAnthropic", return_value=fake_client) as ctor:
+        MiniMaxProvider(s)
+    assert MINIMAX_REQUEST_TIMEOUT_SEC == 1800
+    assert ctor.call_args.kwargs["timeout"] == MINIMAX_REQUEST_TIMEOUT_SEC
+    assert ctor.call_args.kwargs["timeout"] != s.openai.request_timeout_sec
+
+
+def test_minimax_vision_uses_m3_default_and_long_timeout():
+    s = _settings()
+    s.openai.request_timeout_sec = 7
+    fake_client = MagicMock()
+    with patch("anthropic.AsyncAnthropic", return_value=fake_client) as ctor:
+        p = make_vision_provider("minimax", s)
     assert p.name == "minimax"
     assert p.default_vision_model == "MiniMax-M3"
+    assert ctor.call_args.kwargs["timeout"] == MINIMAX_REQUEST_TIMEOUT_SEC
+    assert ctor.call_args.kwargs["timeout"] != s.openai.request_timeout_sec
 
 
 def test_m3_request_translation_uses_extra_body_and_adaptive_thinking():

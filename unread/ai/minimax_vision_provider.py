@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from unread.ai.minimax_provider import MINIMAX_ANTHROPIC_BASE_URL
+from unread.ai.minimax_provider import (
+    MINIMAX_ANTHROPIC_BASE_URL,
+    MINIMAX_REQUEST_TIMEOUT_SEC,
+)
 from unread.ai.providers import ProviderUnavailableError
 from unread.ai.vision_provider import AnthropicVisionProvider
 
@@ -28,7 +31,7 @@ class MiniMaxVisionProvider(AnthropicVisionProvider):
         self._client = AsyncAnthropic(
             api_key=settings.minimax.api_key,
             base_url=MINIMAX_ANTHROPIC_BASE_URL,
-            timeout=settings.openai.request_timeout_sec,
+            timeout=MINIMAX_REQUEST_TIMEOUT_SEC,
             max_retries=0,
         )
         self._settings = settings
