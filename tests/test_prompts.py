@@ -98,8 +98,7 @@ def test_all_builtin_preset_budgets_have_60k_floor() -> None:
                 "is below the 60k builtin floor"
             )
             assert p.map_output_tokens >= 60_000, (
-                f"{language}/{name} map_output_tokens={p.map_output_tokens} "
-                "is below the 60k builtin floor"
+                f"{language}/{name} map_output_tokens={p.map_output_tokens} is below the 60k builtin floor"
             )
 
 
