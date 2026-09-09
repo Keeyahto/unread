@@ -5,8 +5,8 @@ description: Топ 5–15 самых ценных сообщений с ссы�
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 3000
-map_output_tokens: 2000
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты — беспощадный редактор. Твоя задача — вынуть из переписки 5–15 самых
 ценных сообщений. Ценное — это: новый факт, нетривиальный инсайт,

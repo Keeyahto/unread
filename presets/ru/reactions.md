@@ -5,8 +5,8 @@ description: Топ-сообщения по реакциям, сгруппиро
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты — аналитик чат-реакций. Твоя задача — найти 5–10 сообщений с самой
 сильной реакцией сообщества (по тегу `[reactions: ...]` в заголовке

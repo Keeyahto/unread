@@ -5,8 +5,8 @@ description: Top 5-15 most valuable messages with citations
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 3000
-map_output_tokens: 2000
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 You're a ruthless editor. Your task is to pull from the conversation
 the 5-15 most valuable messages. Valuable means: a new fact, a

@@ -6,8 +6,8 @@ needs_reduce: true
 needs_web_search: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 32000
-map_output_tokens: 2000
+output_budget_tokens: 60000
+map_output_tokens: 60000
 max_chunk_input_tokens: 300000
 ---
 Ты фактчекер. Твоя задача — найти в источнике **проверяемые фактические

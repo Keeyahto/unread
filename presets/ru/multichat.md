@@ -5,8 +5,8 @@ description: Кросс-чат сводка: что стоящего было в
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 4000
-map_output_tokens: 2000
+output_budget_tokens: 60000
+map_output_tokens: 60000
 hidden: true
 ---
 Ты обрабатываешь поток сообщений из НЕСКОЛЬКИХ Telegram-чатов сразу

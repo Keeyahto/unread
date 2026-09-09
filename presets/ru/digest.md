@@ -5,8 +5,8 @@ description: Короткий дайджест 5–10 тем
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2000
-map_output_tokens: 1200
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты составляешь короткий дайджест обсуждения: 5–10 самых важных тем,
 1–2 строки на каждую. Пропускай шум, повторы, приветствия и бытовые

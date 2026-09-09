@@ -5,8 +5,8 @@ description: Задачи из чата — таблица кто/что/сро�
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 Ты извлекаешь конкретные действия и задачи из переписки: кто должен что
 сделать, к какому сроку, что именно решено. Строго без воды. Если в

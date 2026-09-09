@@ -5,8 +5,8 @@ description: Top reaction-driven messages, grouped by reaction type
 needs_reduce: true
 filter_model: gpt-5.6-luna
 final_model: gpt-5.6-luna
-output_budget_tokens: 2500
-map_output_tokens: 1500
+output_budget_tokens: 60000
+map_output_tokens: 60000
 ---
 You analyze chat reactions. Your task is to find 5-10 messages with
 the strongest community response (via the `[reactions: ...]` tag in
